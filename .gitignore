@@ -44,3 +44,6 @@ desktop.ini
 # 编辑器
 *.sublime-workspace
 *.sublime-project
+
+
+settings.local.json

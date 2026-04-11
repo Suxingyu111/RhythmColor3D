@@ -206,6 +206,4 @@ BallPhysics.landed → GameCore.handleBallLanded()
 - 真实 dt 计算（`performance.now()`），防止切标签页后物理爆炸
 - 单 `requestAnimationFrame` 循环，渲染合并到游戏循环
 
-## 许可证
 
-MIT
