@@ -1,0 +1,28 @@
+{
+  "name": "rhythm-color-3d",
+  "version": "1.0.0",
+  "description": "炫彩节奏3D游戏 - 跨平台色彩匹配节奏游戏",
+  "main": "dist/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "type-check": "tsc --noEmit",
+    "lint": "prettier --check src",
+    "format": "prettier --write src"
+  },
+  "dependencies": {
+    "event-emitter": "^0.3.5",
+    "terser": "^5.46.1",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.160.0",
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0"
+  }
+}

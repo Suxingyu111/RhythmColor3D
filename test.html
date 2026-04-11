@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>游戏测试 - 球跳跃</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #00aa00;
+            padding: 20px;
+        }
+        pre {
+            background: #0a0a0a;
+            padding: 15px;
+            border: 1px solid #00aa00;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        button { 
+            padding: 10px 20px; 
+            background: #00aa00; 
+            color: #000; 
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            margin: 10px 5px 10px 0;
+            font-family: monospace;
+        }
+        .error { color: #ff3333; }
+        .success { color: #33ff33; }
+        .warning { color: #ffaa33; }
+        .info { color: #33aaff; }
+    </style>
+</head>
+<body>
+    <h2>🎮 游戏系统诊断</h2>
+    
+    <div>
+        <button onclick="runFullDiagnostic()">完整诊断</button>
+        <button onclick="testGameStart()">启动游戏</button>
+        <button onclick="testUIDom()">测试UI DOM</button>
+        <button onclick="clearLog()">清空日志</button>
+    </div>
+
+    <h3>诊断日志:</h3>
+    <pre id="log"></pre>
+
+    <script>
+        const log = document.getElementById('log')
+        
+        function write(msg, type = 'info') {
+            const line = `[${type.toUpperCase()}] ${msg}`
+            console.log(line)
+            log.textContent += line + '\n'
+            log.parentElement.scrollTop = log.parentElement.scrollHeight
+        }
+        
+        function clearLog() {
+            log.textContent = ''
+        }
+        
+        window.runFullDiagnostic = () => {
+            clearLog()
+            write('=== 开始完整诊断 ===', 'info')
+            
+            // 检查全局对象
+            write('检查全局对象...', 'info')
+            write(`window.location: ${window.location.href}`, 'info')
+            write(`document.title: ${document.title}`, 'info')
+            
+            // 检查 app 容器
+            write('检查 app 容器...', 'info')
+            const appContainer = document.getElementById('app')
+            if (appContainer) {
+                write(`✓ #app 容器存在 (${appContainer.className})`, 'success')
+            } else {
+                write('✗ #app 容器不存在!', 'error')
+                return
+            }
+            
+            // 尝试导入主应用
+            write('尝试导入 GameApp...', 'info')
+            import('./src/main.ts?t=' + Date.now())
+                .then(module => {
+                    write('✓ GameApp 模块导入成功', 'success')
+                    
+                    // 等待应用初始化
+                    setTimeout(() => {
+                        const menuBtn = document.getElementById('btn-start')
+                        if (menuBtn) {
+                            write('✓ 菜单 UI 已生成', 'success')
+                            write('  - 发现按钮: btn-start', 'success')
+                        } else {
+                            write('✗ 菜单 UI 未生成', 'error')
+                            write(`  app 内容: ${appContainer.innerHTML.substring(0, 100)}...`, 'warning')
+                        }
+                    }, 1000)
+                })
+                .catch(err => {
+                    write(`✗ 导入 GameApp 失败: ${err.message}`, 'error')
+                    write(`  堆栈: ${err.stack.substring(0, 200)}...`, 'error')
+                })
+        }
+        
+        window.testGameStart = () => {
+            clearLog()
+            write('=== 尝试启动游戏 ===', 'info')
+            write('即将调用 app 的 startGame() 方法...', 'warning')
+            
+            setTimeout(() => {
+                try {
+                    const btn = document.getElementById('btn-start')
+                    if (btn) {
+                        btn.click()
+                        write('✓ 点击了开始按钮', 'success')
+                    } else {
+                        write('✗ 找不到开始按钮', 'error')
+                    }
+                } catch (e) {
+                    write(`✗ 错误: ${e.message}`, 'error')
+                }
+            }, 500)
+        }
+        
+        window.testUIDom = () => {
+            clearLog()
+            write('=== 检查 UI DOM ===', 'info')
+            
+            const elements = [
+                'app', 'main-menu', 'btn-start', 'btn-levels', 'btn-settings',
+                'game-ui', 'canvas-container', 'score', 'blocks-hit', 'game-time',
+                'btn-pause'
+            ]
+            
+            elements.forEach(id => {
+                const el = document.getElementById(id)
+                if (el) {
+                    write(`✓ 找到: #${id} (${el.tagName}, class="${el.className}")`, 'success')
+                } else {
+                    write(`- 未找到: #${id}`, 'warning')
+                }
+            })
+        }
+        
+        window.addEventListener('error', (e) => {
+            write(`[RUNTIME ERROR] ${e.message}`, 'error')
+            write(`at ${e.filename}:${e.lineno}:${e.colno}`, 'error')
+        })
+        
+        window.addEventListener('unhandledrejection', (e) => {
+            write(`[UNHANDLED REJECTION] ${e.reason}`, 'error')
+        })
+        
+        write('诊断页面已加载，请点击上方按钮', 'info')
+    </script>
+</body>
+</html>
