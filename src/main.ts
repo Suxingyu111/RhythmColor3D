@@ -5,6 +5,8 @@
 import GameCore from "@game/GameCore";
 import UIManager from "@ui/UIManager";
 import TrackManager from "@managers/TrackManager";
+// 修正：原生 Web 版 Analytics 导入（注册到主应用）
+import { inject, track } from "@vercel/analytics";
 import {
   BlockHitEvent,
   BoostEvent,
@@ -28,6 +30,8 @@ export class GameApp {
   private comboCount: number = 0;
   private currentLevelId: string = "";
   private settings: AppSettings;
+  // Analytics 注册状态
+  private analyticsInitialized: boolean = false;
 
   // localStorage 存储键
   private readonly UNLOCK_KEY = "rhythmColor3D_unlockedLevels";
@@ -39,9 +43,30 @@ export class GameApp {
     this.trackManager = new TrackManager();
     this.settings = this.loadSettings();
 
+    // 核心：注册 Analytics 到主应用
+    this.initAnalytics();
+    
     this.applySettings();
     this.setupEventListeners();
     this.init();
+  }
+
+  /**
+   * 初始化 Analytics（注册到主应用）
+   */
+  private initAnalytics(): void {
+    if (this.analyticsInitialized) return;
+    inject();
+    this.analyticsInitialized = true;
+    console.log("GameApp: Analytics 已注册到主应用");
+  }
+
+  /**
+   * 统一事件上报（主应用提供）
+   */
+  public trackEvent(eventName: string, properties?: Record<string, any>): void {
+    if (!this.analyticsInitialized) return;
+    track(eventName, properties);
   }
 
   /**
@@ -100,6 +125,13 @@ export class GameApp {
 
     this.gameCore.on("game-finished", (result: GameResult) => {
       this.uiManager.hideBoostIndicator();
+      // 上报：游戏通关
+      this.trackEvent("game_completed", {
+        levelId: this.currentLevelId,
+        score: result.score,
+        accuracy: result.accuracy,
+        blocksHit: result.blocksHit
+      });
       // 通关成功，解锁下一关
       if (this.currentLevelId) {
         this.unlockNextLevel(this.currentLevelId);
@@ -112,6 +144,12 @@ export class GameApp {
       this.comboCount = 0;
       this.uiManager.hideCombo();
       this.uiManager.hideBoostIndicator();
+      // 上报：游戏失败
+      this.trackEvent("game_failed", {
+        levelId: this.currentLevelId,
+        score: result.score,
+        blocksHit: result.blocksHit
+      });
       this.showFailScreen(result);
     });
 
@@ -123,6 +161,10 @@ export class GameApp {
     // 复活成功事件监听
     this.gameCore.on("game-revived", () => {
       this.hideReviveScreen();
+      // 上报：复活成功
+      this.trackEvent("game_revived", {
+        levelId: this.currentLevelId
+      });
     });
 
     // 加速事件监听
@@ -175,6 +217,13 @@ export class GameApp {
 
     // 记录当前关卡ID（用于通关解锁）
     this.currentLevelId = level.id;
+
+    // 上报：开始游戏
+    this.trackEvent("game_start", {
+      levelId: this.currentLevelId,
+      levelName: level.name,
+      difficulty: level.difficulty
+    });
 
     // 清空菜单
     this.uiManager.clear();
