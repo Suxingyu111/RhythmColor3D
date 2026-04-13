@@ -1,209 +1,236 @@
-# 炫彩节奏3D
+# 炫彩节奏 3D
 
-基于 Three.js 的 3D 球形跳跃节奏游戏。球在太空轨道上自动弹跳前进，玩家通过左右切换车道踩中颜色方块得分，配合程序化生成的电子音乐，体验音画同步的节奏快感。
+基于 Vite、TypeScript、Three.js 和 Web Audio API 构建的 3D 色彩节奏游戏。玩家操控一颗发光球体在三条太空轨道间跳跃，跟随程序化电子音乐踩中对应颜色方块，完成从月球漫步到黑洞边界的 10 个关卡挑战。
 
-## 游戏玩法
+项目当前重点已经从原型玩法推进到稳定可维护版本：菜单和游戏 HUD 完成沉浸式视觉升级，核心事件已类型化，渲染资源释放路径更完整，生产构建会将 Three.js 拆分为独立 chunk。
 
-球在三条车道（左/中/右）上自动跳跃前进，每次落地需要踩中前方的颜色方块。方块分为四种类型：
+## 功能亮点
 
-| 类型 | 外观 | 效果 |
-|------|------|------|
-| 变色方块 | 宽矩形，覆盖全车道 | 踩到后球变为方块颜色 |
-| 分裂方块（三块） | 三个小方块分布在三条车道 | 必须踩到与球颜色一致的方块，否则失败 |
-| 分裂方块（两块） | 两个小方块在相邻车道 | 同上，颜色不匹配则失败 |
-| 加速方块 | 白色发光矩形 | 踩到后球加速，音乐 BPM 同步提升 |
-
-到达关卡目标距离即通关，踩错颜色或踩空则失败。
-
-### 复活机制
-
-每局游戏最多 3 次复活机会，失败后弹出复活选择界面：
-
-| 方式 | 条件 | 效果 |
-|------|------|------|
-| 观看广告复活 | 免费，3 秒倒计时 | 倒计时结束后原地复活 |
-| 分数复活 | 当前分数 ≥ 50 | 消耗 50% 分数，立即复活 |
-| 连击护盾 | 失败前连击 ≥ 10，每局限 1 次 | 免费立即复活 |
-
-复活后处理：
-- 球传送到失败位置前方的安全方块上（优先：变色方块 > 加速方块 > 颜色匹配分裂方块）
-- 球颜色自动匹配目标方块
-- 2 秒无敌保护（球体闪烁提示），期间踩错不会失败
-- 加速状态清除，恢复基础速度
-- 3 次机会用完或玩家放弃后进入正常失败结算
-
-### 操作方式
-
-| 按键 | 功能 |
-|------|------|
-| `←` / `→` 方向键 | 切换车道（每次移动一格） |
-| `ESC` | 暂停 / 退出 |
-| `空格` | 继续 / 重试 |
-
-支持触屏滑动操作。
-
-## 关卡系统
-
-10 个太空主题关卡，4 个难度梯度，逐关解锁：
-
-| 关卡 | 名称 | 难度 | BPM | 目标距离 | 音阶风格 |
-|------|------|------|-----|----------|----------|
-| 1 | 月球漫步 | EASY | 96 | 200m | A 小调五声 |
-| 2 | 火星风暴 | EASY | 96 | 300m | D Dorian |
-| 3 | 金星熔炉 | NORMAL | 115 | 400m | E Phrygian |
-| 4 | 木星漩涡 | NORMAL | 115 | 500m | G Mixolydian |
-| 5 | 土星光环 | NORMAL | 115 | 600m | C Lydian |
-| 6 | 天王星冰原 | HARD | 144 | 750m | E 自然小调 |
-| 7 | 海王星深渊 | HARD | 144 | 900m | C# 和声小调 |
-| 8 | 天狼星闪耀 | HARD | 144 | 1050m | A 大调五声 |
-| 9 | 参宿四脉动 | EXTREME | 173 | 1200m | Bb 全音阶 |
-| 10 | 黑洞边界 | EXTREME | 173 | 1500m | E 半音阶 |
-
-每个关卡拥有独立的场景主题（背景色、雾效、环境光）和程序化音乐配置。
-
-### 难度参数
-
-| 难度 | 速度倍率 | 变色轨道 | 三块轨道 | 两块轨道 | 加速轨道 | 加速倍率 |
-|------|----------|----------|----------|----------|----------|----------|
-| EASY | 1.0x | 45% | 15% | 30% | 10% | 1.5x |
-| NORMAL | 1.2x | 30% | 25% | 25% | 20% | 2.0x |
-| HARD | 1.5x | 20% | 28% | 27% | 25% | 2.5x |
-| EXTREME | 1.8x | 12% | 30% | 30% | 28% | 3.0x |
+- 3D 轨道跳跃玩法：三车道移动、颜色匹配、自动吸附、安全复活。
+- 程序化音乐：Web Audio 前瞻调度驱动鼓组、Bass、旋律和 Pad。
+- 音画同步反馈：节拍脉冲、Bloom、粒子、摄像机震动、加速风暴。
+- 关卡难度曲线：10 个太空主题关卡，覆盖 EASY、NORMAL、HARD、EXTREME。
+- 沉浸式界面：深空主菜单、任务面板、驾驶舱 HUD、统一弹窗系统。
+- 稳定性优化：键盘监听、倒计时、复活回调和 WebGL 资源在退出/销毁时统一清理。
+- 构建优化：Vite 手动拆包，将 Three.js 从主业务 chunk 中分离。
 
 ## 快速开始
 
 ```bash
-# 安装依赖
 npm install
-
-# 启动开发服务器（端口 5173）
 npm run dev
-
-# 构建生产版本
-npm run build
-
-# 类型检查
-npm run typecheck
-
-# 代码格式化
-npm run format
 ```
+
+开发服务器默认运行在：
+
+```text
+http://localhost:5173
+```
+
+常用脚本：
+
+| 命令                | 说明                     |
+| ------------------- | ------------------------ |
+| `npm run dev`       | 启动 Vite 开发服务器     |
+| `npm run build`     | 生成生产构建到 `dist/`   |
+| `npm run preview`   | 本地预览生产构建         |
+| `npm run typecheck` | 执行 TypeScript 类型检查 |
+| `npm run lint`      | 使用 Prettier 检查格式   |
+| `npm run format`    | 自动格式化源码和配置     |
+
+## 游戏玩法
+
+球体会自动向前跳跃，玩家通过左右移动切换车道，在落地时踩中正确方块。
+
+| 方块类型   | 外观                     | 规则                         |
+| ---------- | ------------------------ | ---------------------------- |
+| 变色方块   | 宽矩形，覆盖安全车道     | 踩中后球体切换为方块颜色     |
+| 三分裂方块 | 三个小方块分布在三条车道 | 必须踩中与球体颜色一致的方块 |
+| 双分裂方块 | 两个小方块分布在相邻车道 | 同样要求颜色匹配             |
+| 加速方块   | 白色发光轨道             | 触发短时间加速和音乐节奏提升 |
+
+失败条件：
+
+- 落地时没有踩到可吸附方块。
+- 踩中分裂方块但颜色不匹配。
+- 放弃复活或复活次数耗尽。
+
+通关条件：
+
+- 到达当前关卡目标距离。
+
+## 操作方式
+
+| 输入      | 功能             |
+| --------- | ---------------- |
+| `←` / `→` | 左右切换车道     |
+| `ESC`     | 暂停或返回       |
+| `空格`    | 继续、重试或确认 |
+| 触屏滑动  | 移动车道         |
+
+## 复活机制
+
+每局最多 3 次复活机会。失败后会进入复活选择界面：
+
+| 方式     | 条件                           | 效果                 |
+| -------- | ------------------------------ | -------------------- |
+| 广告复活 | 免费，倒计时后生效             | 原地附近安全复活     |
+| 分数复活 | 当前分数不低于 50              | 消耗部分分数立即复活 |
+| 连击护盾 | 失败前连击达到要求，每局限一次 | 免费立即复活         |
+
+复活后会自动寻找安全目标方块，优先保证球体颜色和落点规则一致，并提供短暂无敌保护，避免旧局倒计时或回调影响新一局。
+
+## 关卡列表
+
+| 关卡 | 名称       | 难度    | BPM | 目标距离 | 音阶风格     |
+| ---- | ---------- | ------- | --- | -------- | ------------ |
+| 1    | 月球漫步   | EASY    | 96  | 200m     | A 小调五声   |
+| 2    | 火星风暴   | EASY    | 96  | 300m     | D Dorian     |
+| 3    | 金星熔炉   | NORMAL  | 115 | 400m     | E Phrygian   |
+| 4    | 木星漩涡   | NORMAL  | 115 | 500m     | G Mixolydian |
+| 5    | 土星光环   | NORMAL  | 115 | 600m     | C Lydian     |
+| 6    | 天王星冰原 | HARD    | 144 | 750m     | E 自然小调   |
+| 7    | 海王星深渊 | HARD    | 144 | 900m     | C# 和声小调  |
+| 8    | 天狼星闪耀 | HARD    | 144 | 1050m    | A 大调五声   |
+| 9    | 参宿四脉动 | EXTREME | 173 | 1200m    | Bb 全音阶    |
+| 10   | 黑洞边界   | EXTREME | 173 | 1500m    | E 半音阶     |
+
+难度会同时影响前进速度、方块类型概率、加速倍率和容错压力。
 
 ## 技术栈
 
-- **构建工具**：Vite 5 + TypeScript 5
-- **3D 渲染**：Three.js 0.160（PerspectiveCamera + UnrealBloomPass 后处理）
-- **音频引擎**：Web Audio API（AudioContext 前瞻调度，16 步序列器）
-- **UI**：原生 DOM，无框架依赖
+| 模块     | 技术                       |
+| -------- | -------------------------- |
+| 应用框架 | Vite 5 + TypeScript        |
+| 3D 渲染  | Three.js + UnrealBloomPass |
+| 音频     | Web Audio API              |
+| UI       | 原生 DOM + CSS             |
+| 构建优化 | Rollup manualChunks        |
+| 代码质量 | TypeScript + Prettier      |
 
 ## 项目结构
 
-```
+```text
 src/
 ├── 3d/
-│   └── Renderer3D.ts           # Three.js 渲染系统（1400+ 行）
-│                                 # 球体、轨道方块、粒子系统、后处理、视觉特效
+│   └── Renderer3D.ts        # Three.js 场景、球体、方块、粒子、后处理和资源释放
 ├── audio/
-│   ├── AudioManager.ts          # 音频引擎（前瞻调度 BGM + 音效）
-│   └── MusicConfig.ts           # 10 关卡程序化音乐配置
+│   ├── AudioManager.ts      # Web Audio 引擎、音效、音量设置和调度
+│   └── MusicConfig.ts       # 关卡音乐参数和节奏配置
 ├── game/
-│   ├── GameCore.ts              # 游戏核心（状态机、碰撞协调、事件分发）
-│   ├── BallPhysics.ts           # 球体物理（跳跃、重力、车道切换、加速）
-│   ├── ColorMatcher.ts          # 颜色十六进制映射
-│   └── types.ts                 # 类型定义（GameState、TrackBlock、BallState 等）
+│   ├── BallPhysics.ts       # 球体跳跃、车道移动、速度和落地事件
+│   ├── ColorMatcher.ts      # 游戏颜色映射
+│   ├── GameCore.ts          # 游戏状态机、碰撞、计分、复活和事件分发
+│   └── types.ts             # 共享类型和事件类型定义
 ├── managers/
-│   └── TrackManager.ts          # 轨道动态生成（确定性种子随机、难度配置、关卡预设）
+│   └── TrackManager.ts      # 关卡配置、轨道生成、碰撞查询和自动吸附
 ├── ui/
-│   └── UIManager.ts             # DOM UI 管理
+│   └── UIManager.ts         # 主菜单、HUD、弹窗和 DOM 生命周期管理
 ├── utils/
-│   └── EventEmitter.ts          # 自定义事件系统
-└── main.ts                      # 应用入口（GameApp 类：菜单、关卡选择、设置、结算）
+│   └── EventEmitter.ts      # 类型化事件发射器
+└── main.ts                  # 应用入口、页面流转、设置持久化和全局清理
 ```
 
-### 路径别名
+路径别名：
 
-| 别名 | 路径 |
-|------|------|
-| `@game/*` | `src/game/*` |
-| `@3d/*` | `src/3d/*` |
-| `@audio/*` | `src/audio/*` |
+| 别名          | 目标             |
+| ------------- | ---------------- |
+| `@/*`         | `src/*`          |
+| `@game/*`     | `src/game/*`     |
+| `@3d/*`       | `src/3d/*`       |
+| `@audio/*`    | `src/audio/*`    |
 | `@managers/*` | `src/managers/*` |
-| `@ui/*` | `src/ui/*` |
-| `@utils/*` | `src/utils/*` |
+| `@ui/*`       | `src/ui/*`       |
+| `@utils/*`    | `src/utils/*`    |
 
 ## 核心架构
 
-### 游戏循环
+游戏由 `GameCore` 驱动单一 `requestAnimationFrame` 主循环：
 
-```
-GameCore.startGameLoop()  [requestAnimationFrame]
-  ├── BallPhysics.update(dt)        → 物理模拟（重力、跳跃、前进）
-  ├── TrackManager.updateTrack()    → 动态加载/回收方块
-  ├── AudioManager.getBeatInfo()    → 获取当前节拍信息
-  ├── Renderer3D.updateBallState()  → 球体渲染 + 节拍视觉响应
-  ├── Renderer3D.updateCameraPosition() → 相机跟踪 + 震动 + FOV 脉冲
-  └── Renderer3D.render()           → 合成输出
-```
-
-### 事件流
-
-```
-BallPhysics.landed → GameCore.handleBallLanded()
-  ├── TrackManager.checkBlockCollision()  → 车道精确匹配
-  ├── TrackManager.findNearestBlockAnyLane() → 自动吸附（防踩空）
-  ├── 颜色匹配检查 → 成功：snapToBlock + 计分 / 失败：failGame
-  │     └── failGame → 爆炸动画（1秒）
-  │           ├── 复活次数 < 3 → state=REVIVING → 复活选择 UI
-  │           │     ├── 玩家选择复活 → reviveGame → softReset + 2秒无敌
-  │           │     └── 玩家放弃 → 失败结算
-  │           └── 复活次数 ≥ 3 → 直接失败结算
-  └── Renderer3D 视觉反馈（弹跳、涟漪、粒子、震动）
+```text
+GameCore.startGameLoop()
+├── BallPhysics.update(dt)
+├── TrackManager.updateTrack(ballZ)
+├── AudioManager.getBeatInfo()
+├── Renderer3D.updateBallState()
+├── Renderer3D.updateCameraPosition()
+├── Renderer3D.updateBeatEffects()
+└── Renderer3D.render()
 ```
 
-### 物理系统
+事件通信通过类型化 `EventEmitter` 完成，主要事件包括：
 
-球的跳跃参数经过精确计算，保证不同速度下落点始终对齐方块间距：
+- `game-update`
+- `block-hit`
+- `game-finished`
+- `game-failed`
+- `game-revive-offer`
+- `game-revived`
+- `boost-activated`
+- `boost-deactivated`
+- `ball-color-changed`
+- `lane-changed`
 
-- 基础参数：`jumpForce=20, gravity=32, moveSpeed=4, blockSpacing=5`
-- 跳跃高度：`h = jumpForce² / (2 × gravity) = 6.25`（恒定）
-- 落点距离：`d = moveSpeed × jumpDuration = 5 = blockSpacing`（恒定）
-- 速度倍率 k：`moveSpeed×k, jumpForce×k, gravity×k²` → 高度不变，节奏加快
+UI 层只订阅事件并更新 DOM，游戏规则保持在 `GameCore`、`BallPhysics` 和 `TrackManager` 内。
 
-### 音频系统
+## 视觉与界面
 
-基于 AudioContext 的前瞻调度引擎，零延迟节拍同步：
+主菜单采用深空任务控制台风格，包含轨道动效、任务状态、关卡入口和设置入口。游戏内 HUD 使用悬浮式驾驶舱布局，弱化传统网页面板感，让玩家视线集中在 3D 轨道上。
 
-- 16 步序列器驱动鼓组（kick/snare/hihat）
-- 独立 Bass 和 Melody 声部，支持不同步进分辨率
-- Pad 持续和弦 + 小节级和弦进行
-- ADSR 包络 + 可选低通滤波器
-- BeatInfo 接口实时暴露节拍状态给视觉层
+主要 CSS 入口位于 `public/style.css`，结构大致分为：
 
-### 视觉特效
+- 全局背景、字体和布局。
+- 主菜单和任务面板。
+- 游戏 HUD、距离条、连击、加速提示。
+- 关卡选择、设置页、结果页。
+- 暂停、复活等模态弹窗。
+- 移动端响应式适配。
 
-| 特效 | 描述 |
-|------|------|
-| 球体拖尾 | 自定义 ShaderMaterial，20 点二次衰减渐变 |
-| 落地粒子 | 30 颗对象池粒子爆发 |
-| 加速风暴 | 1000 颗粒子翻涌 + FOV 拉宽至 82° |
-| 涟漪冲击波 | 双层 Shader 矩形 SDF + 36 颗火花扩散 |
-| 跳板弹性 | 方块下压回弹动画 |
-| 变色闪光 | 白色 emissive 爆闪 + 缩放弹跳过渡 |
-| 方块入场 | scale.y 从 0 升起，ease-out cubic |
-| 球体破裂 | 12 碎片飞散 + 环境光红闪 + bloom 飙升 |
-| 复活重生 | 球体 scale 0→1.2→1.0 弹跳 + 点光源闪亮 + 粒子爆发 |
-| 无敌闪烁 | 复活后 2 秒球体 100ms 间隔闪烁 |
-| 摄像机震动 | 落地/死亡触发，随机偏移 + 线性衰减 |
-| 节拍脉冲 | 点光源 + bloom 随四分/半音符拍点呼吸 |
-| 星空脉动 | 2000 颗星随强拍闪烁 |
-| UnrealBloom | 全局辉光后处理 |
+## 渲染与资源生命周期
 
-### 性能策略
+`Renderer3D` 负责管理 Three.js 资源，并在销毁时释放：
 
-- 方块共享 Geometry + 缓存 Material，零运行时分配
-- 粒子系统全部预分配对象池
-- 每 5 帧检查可见方块创建，每 30 帧清理身后方块
-- 真实 dt 计算（`performance.now()`），防止切标签页后物理爆炸
-- 单 `requestAnimationFrame` 循环，渲染合并到游戏循环
+- renderer、composer、scene、geometry、material、texture。
+- resize 监听器。
+- 背景星场、网格、灯光和动态粒子。
+- 临时动画通过运行状态保护，避免销毁后继续访问旧 scene。
 
+UI 和主流程同样会在返回菜单、通关、失败、重试和销毁时清理键盘监听、倒计时和复活回调，降低连续开局后的状态残留风险。
 
+## 构建说明
+
+生产构建配置位于 `vite.config.ts`：
+
+- `target: "ES2020"`
+- `minify: "terser"`
+- `sourcemap: true`
+- `three` 单独拆分为 `three` chunk
+- 其他第三方依赖拆分为 `vendor` chunk
+
+当前构建输出会将业务代码和 Three.js 分开，降低主 chunk 体积并避免 Vite 默认 500 kB 警告。
+
+## 质量检查
+
+提交前建议运行：
+
+```bash
+npm run format
+npm run typecheck
+npm run lint
+npm run build
+```
+
+手动验收建议：
+
+- 主菜单、设置、关卡选择之间来回切换，不应残留旧 DOM。
+- 连续开始、失败、复活、返回菜单多次，控制台不应出现旧倒计时或事件监听异常。
+- 游戏中偏离当前车道落地时，自动吸附应优先选择安全或颜色匹配方块。
+- 通关、失败、复活、放弃复活期间返回菜单，不应触发旧局回调。
+
+## 开发约定
+
+- 优先保持原生 DOM 架构，不额外引入 UI 框架。
+- 玩法规则优先放在 `src/game` 和 `src/managers`，UI 只展示状态。
+- 新增事件时先补充 `src/game/types.ts` 中的事件映射。
+- 新增 Three.js 资源时必须确认对应释放路径。
+- 样式修改后运行 `npm run format`，保持 CSS 和 TypeScript 统一格式。

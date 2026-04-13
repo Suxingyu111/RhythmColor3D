@@ -10,18 +10,16 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "type-check": "tsc --noEmit",
-    "lint": "prettier --check src",
-    "format": "prettier --write src"
+    "lint": "prettier --check src public/style.css index.html vite.config.ts tsconfig.json package.json",
+    "format": "prettier --write src public/style.css index.html vite.config.ts tsconfig.json package.json"
   },
   "dependencies": {
-    "event-emitter": "^0.3.5",
-    "terser": "^5.46.1",
     "three": "^0.160.0"
   },
   "devDependencies": {
     "@types/three": "^0.160.0",
-    "@vitejs/plugin-basic-ssl": "^1.0.1",
     "prettier": "^3.0.0",
+    "terser": "^5.46.1",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
   }

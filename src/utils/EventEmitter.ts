@@ -3,20 +3,28 @@
  * 支持事件订阅、发射和清理
  */
 
-export class EventEmitter {
+type EventMap = { [K in string]?: unknown[] };
+
+export class EventEmitter<Events extends EventMap = EventMap> {
   // 事件监听器映射表：事件名 => 回调函数数组
-  private listeners: Map<string, Array<(...args: any[]) => void>> = new Map()
+  private listeners: Map<
+    keyof Events & string,
+    Array<(...args: unknown[]) => void>
+  > = new Map();
 
   /**
    * 订阅事件
    * @param event 事件名
    * @param callback 回调函数
    */
-  on(event: string, callback: (...args: any[]) => void): void {
+  on<K extends keyof Events & string>(
+    event: K,
+    callback: (...args: NonNullable<Events[K]>) => void,
+  ): void {
     if (!this.listeners.has(event)) {
-      this.listeners.set(event, [])
+      this.listeners.set(event, []);
     }
-    this.listeners.get(event)!.push(callback)
+    this.listeners.get(event)!.push(callback as (...args: unknown[]) => void);
   }
 
   /**
@@ -24,12 +32,15 @@ export class EventEmitter {
    * @param event 事件名
    * @param callback 回调函数
    */
-  off(event: string, callback: (...args: any[]) => void): void {
-    if (!this.listeners.has(event)) return
-    const callbacks = this.listeners.get(event)!
-    const index = callbacks.indexOf(callback)
+  off<K extends keyof Events & string>(
+    event: K,
+    callback: (...args: NonNullable<Events[K]>) => void,
+  ): void {
+    if (!this.listeners.has(event)) return;
+    const callbacks = this.listeners.get(event)!;
+    const index = callbacks.indexOf(callback as (...args: unknown[]) => void);
     if (index !== -1) {
-      callbacks.splice(index, 1)
+      callbacks.splice(index, 1);
     }
   }
 
@@ -38,18 +49,21 @@ export class EventEmitter {
    * @param event 事件名
    * @param args 传递给回调的参数
    */
-  emit(event: string, ...args: any[]): void {
-    if (!this.listeners.has(event)) return
-    const callbacks = this.listeners.get(event)!
-    callbacks.forEach((callback) => callback(...args))
+  emit<K extends keyof Events & string>(
+    event: K,
+    ...args: NonNullable<Events[K]>
+  ): void {
+    if (!this.listeners.has(event)) return;
+    const callbacks = this.listeners.get(event)!;
+    callbacks.forEach((callback) => callback(...args));
   }
 
   /**
    * 清除所有事件监听器
    */
   clear(): void {
-    this.listeners.clear()
+    this.listeners.clear();
   }
 }
 
-export default EventEmitter
+export default EventEmitter;

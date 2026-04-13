@@ -2,16 +2,13 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "ESNext",
-    "lib": ["ES2020", "ES2015", "ES2016", "ES2017", "DOM", "DOM.Iterable"],
-    "jsx": "react-jsx",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "moduleResolution": "bundler",
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
@@ -27,5 +24,5 @@
     }
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "src/**/*.old.ts", "src/game/RhythmDetector.ts", "src/game/ScoreManager.ts", "src/managers/LevelManager.ts"]
+  "exclude": ["node_modules", "dist"]
 }
